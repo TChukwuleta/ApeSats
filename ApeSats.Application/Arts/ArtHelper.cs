@@ -43,6 +43,14 @@ namespace ApeSats.Application.Arts
                     throw new ArgumentException("Invalid art specified");
                 }
 
+                var sellerAccount = await _context.Accounts.FirstOrDefaultAsync(c => c.UserId == art.UserId);
+                if (sellerAccount == null)
+                {
+                    throw new ArgumentException("Invalid seller account");
+                }
+                sellerAccount.LedgerBalance += art.Bid.Amount;
+                sellerAccount.AvailableBalance += art.Bid.Amount;
+
                 account.LockedBalance -= art.Bid.Amount;
 
                 art.BidStartTime = new DateTime();

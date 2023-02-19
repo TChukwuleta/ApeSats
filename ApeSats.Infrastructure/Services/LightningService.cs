@@ -7,12 +7,6 @@ using Grpc.Core;
 using Lnrpc;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApeSats.Infrastructure.Services
 {
