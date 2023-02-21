@@ -1,7 +1,9 @@
 ﻿using ApeSats.Application.Common.Interfaces;
 using ApeSats.Application.Common.Model.Response;
+using ApeSats.Application.Transactions.Commands;
 using ApeSats.Core.Entities;
 using ApeSats.Core.Enums;
+using ApeSats.Core.Model;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -61,6 +63,21 @@ namespace ApeSats.Application.Arts
                 art.UserId = request.UserId;
                 _context.Accounts.Update(account);
                 _context.Arts.Update(art);
+
+                var transactionRequest = new CreateTransactionCommand
+                {
+                    Description = "Art payed for successfully",
+                    DebitAccount = account.AccountNumber,
+                    CreditAccount = sellerAccount.AccountNumber,
+                    Amount = art.Bid.Amount,
+                    TransactionType = TransactionType.Debit,
+                    UserId = request.UserId
+                };
+                var createTransaction = await new CreateTransactionCommandHandler(_context, _authService).Handle(transactionRequest, new CancellationToken());
+                if (!createTransaction.Succeeded)
+                {
+                    throw new ArgumentException("An error while creating a transaction. Kindly contact support");
+                }
                 await _context.SaveChangesAsync(new CancellationToken());
                 return art;
             }
