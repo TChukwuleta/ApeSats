@@ -46,6 +46,10 @@ namespace ApeSats.Application.Arts.Commands
                 {
                     return Result.Failure("Unable to publish art. Art currently on bid");
                 }
+                if (request.BidEndTime < DateTime.Now)
+                {
+                    return Result.Failure("You cannot select a day earlier than now for your expiration");
+                }
                 if ((art.ArtStatus == Core.Enums.ArtStatus.Published || art.ArtStatus == Core.Enums.ArtStatus.Rebid) && art.BidExpirationTime < DateTime.Now)
                 {
                     if (art.ArtStatus == Core.Enums.ArtStatus.Rebid)

@@ -3,11 +3,10 @@ using ApeSats.Application.Common.Interfaces.Validators;
 using ApeSats.Core.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing;
 
 namespace ApeSats.Application.Arts.Commands
 {
@@ -22,12 +21,14 @@ namespace ApeSats.Application.Arts.Commands
         private readonly IAppDbContext _context;
         private readonly IAuthService _authService;
         private readonly ILightningService _lightningService;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public GenerateInvoiceForArtCommandHandler(IAppDbContext context, IAuthService authService, ILightningService lightningService)
+        public GenerateInvoiceForArtCommandHandler(IAppDbContext context, IAuthService authService, ILightningService lightningService, ICloudinaryService cloudinaryService)
         {
             _context = context;
             _lightningService = lightningService;
             _authService = authService;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<Result> Handle(GenerateInvoiceForArtCommand request, CancellationToken cancellationToken)
@@ -65,11 +66,42 @@ namespace ApeSats.Application.Arts.Commands
                     return Result.Failure("Invalid wallet balance. Kindly contact support");
                 }
                 var invoice = await _lightningService.CreateInvoice((long)art.Bid.Amount, $"{art.Id}/{request.UserId}", Core.Enums.UserType.Admin);
-                return Result.Success("Invoice generation was successful. Kindly proceed to make payment",invoice);
+                if (string.IsNullOrEmpty(invoice))
+                {
+                    return Result.Failure("Cannot generate invoice at the moment. Please try again later");
+                }
+
+                QRCodeGenerator qrGenerator = new QRCodeGenerator();
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(invoice, QRCodeGenerator.ECCLevel.Q);
+                QRCode qrCode = new QRCode(qrCodeData);
+                Bitmap qrCodeImage = qrCode.GetGraphic(10);
+                qrCodeImage.Save($"{art.Id}_{request.UserId}.jpg");
+                /*var imageBytes = BitmapToBytes(qrCodeImage);
+                string SigBase64 = Convert.ToBase64String(imageBytes);*/
+
+
+                var fileUrl = await _cloudinaryService.UploadInvoiceQRCode(art.Id, request.UserId);
+                var response = new
+                {
+                    QRCode = fileUrl,
+                    Invoice = invoice
+                };
+
+                return Result.Success("Invoice generation was successful. Kindly proceed to make payment",response);
             }
             catch (Exception ex)
             {
                 return Result.Failure(new string[] { "Invoice generation was not successful", ex?.Message ?? ex?.InnerException.Message });
+            }
+        }
+
+
+        private static Byte[] BitmapToBytes(Bitmap img)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                img.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+                return stream.ToArray();
             }
         }
     }

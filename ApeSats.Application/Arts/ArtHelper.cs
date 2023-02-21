@@ -50,6 +50,18 @@ namespace ApeSats.Application.Arts
                 {
                     throw new ArgumentException("Invalid seller account");
                 }
+
+                var transactionRequest = new CreateTransactionCommand
+                {
+                    Description = "Art payed for successfully",
+                    DebitAccount = account.AccountNumber,
+                    CreditAccount = sellerAccount.AccountNumber,
+                    Amount = art.Bid.Amount,
+                    TransactionType = TransactionType.Debit,
+                    UserId = request.UserId
+                };
+
+
                 sellerAccount.LedgerBalance += art.Bid.Amount;
                 sellerAccount.AvailableBalance += art.Bid.Amount;
 
@@ -64,15 +76,7 @@ namespace ApeSats.Application.Arts
                 _context.Accounts.Update(account);
                 _context.Arts.Update(art);
 
-                var transactionRequest = new CreateTransactionCommand
-                {
-                    Description = "Art payed for successfully",
-                    DebitAccount = account.AccountNumber,
-                    CreditAccount = sellerAccount.AccountNumber,
-                    Amount = art.Bid.Amount,
-                    TransactionType = TransactionType.Debit,
-                    UserId = request.UserId
-                };
+                
                 var createTransaction = await new CreateTransactionCommandHandler(_context, _authService).Handle(transactionRequest, new CancellationToken());
                 if (!createTransaction.Succeeded)
                 {

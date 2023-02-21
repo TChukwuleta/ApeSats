@@ -88,5 +88,40 @@ namespace ApeSats.Infrastructure.Services
                 throw ex;
             }
         }
+
+        public async Task<string> UploadInvoiceQRCode(int artId, string userid)
+        {
+            try
+            {
+                var fileLocation = Directory.GetCurrentDirectory() + $"\\{artId}_{userid}.jpg";
+                Account account = new Account
+                {
+                    ApiKey = _config["cloudinary:key"],
+                    ApiSecret = _config["cloudinary:secret"],
+                    Cloud = _config["cloudinary:cloudname"]
+                };
+                Cloudinary cloudinary = new Cloudinary(account);
+                var uploadParams = new ImageUploadParams()
+                {
+                    File = new FileDescription(fileLocation)
+                };
+
+                var uploadResult = await cloudinary.UploadAsync(uploadParams);
+                if (uploadResult.Error != null)
+                {
+                    throw new Exception("An error occured while uploading document");
+                }
+
+                //var fileUrl = uploadResult.Uri.ToString();
+                string fileUrl = uploadResult.SecureUri.AbsoluteUri;
+                File.Delete(fileLocation);
+                return fileUrl;
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        }
     }
 }

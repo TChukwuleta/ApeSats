@@ -36,7 +36,7 @@ namespace ApeSats.Application.Arts.Queries
                 {
                     return Result.Failure("Unable to retrieve art. Invalid user details");
                 }
-                var art = await _context.Arts.FirstOrDefaultAsync(c => c.Id == request.Id);
+                var art = await _context.Arts.Include(c => c.Bid).FirstOrDefaultAsync(c => c.Id == request.Id);
                 if (art == null)
                 {
                     return Result.Failure("Unable to retrieve art. Invalid art details speicified");
