@@ -286,5 +286,47 @@ namespace ApeSats.Infrastructure.Services
                 throw;
             }
         }
+
+        public async Task<long> DecodePaymentRequest(string paymentRequest, UserType userType)
+        {
+            long result = default;
+            var helper = new LightningHelper(_config);
+            var paymentReq = new PayReqString();
+            var walletBalance = await GetWalletBalance(userType);
+            try
+            {
+                switch (userType)
+                {
+                    case UserType.User:
+                        var userClient = helper.GetUserClient();
+                        paymentReq.PayReq = paymentRequest;
+                        var decodedPaymentReq = userClient.DecodePayReq(paymentReq, new Metadata() { new Metadata.Entry("macaroon", helper.GetUserMacaroon()) });
+                        if (walletBalance < decodedPaymentReq.NumSatoshis)
+                        {
+                            throw new ArgumentException("Unable to complete lightning payment. Insufficient node balance. Please contact support");
+                        }
+                        result = decodedPaymentReq.NumSatoshis;
+                        break;
+                    case UserType.Admin:
+                        var adminClient = helper.GetAdminClient();
+                        paymentReq.PayReq = paymentRequest;
+                        var decodedAdminPaymentReq = adminClient.DecodePayReq(paymentReq, new Metadata() { new Metadata.Entry("macaroon", helper.GetAdminMacaroon()) });
+                        if (walletBalance < decodedAdminPaymentReq.NumSatoshis)
+                        {
+                            throw new ArgumentException("Unable to complete lightning payment. Insufficient node balance. Please contact support");
+                        }
+                        result = decodedAdminPaymentReq.NumSatoshis;
+                        break;
+                    default:
+                        throw new ArgumentException("Invalid useer type specified");
+                        break;
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }

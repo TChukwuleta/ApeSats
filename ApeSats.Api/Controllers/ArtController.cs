@@ -1,6 +1,7 @@
 ﻿using ApeSats.Application.Arts.Commands;
 using ApeSats.Application.Arts.Queries;
 using ApeSats.Application.Transactions.Queries;
+using ApeSats.Application.Users.Commands;
 using ApeSats.Core.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -98,6 +99,19 @@ namespace ApeSats.Api.Controllers
             catch (Exception ex)
             {
                 return Result.Failure($"Failed to listen for invoice. Error: {ex?.Message ?? ex?.InnerException?.Message}");
+            }
+        }
+
+        [HttpPost("withdrawsatoshis")]
+        public async Task<ActionResult<Result>> WithdrawSatoshis(WithdrawSatoshiCommand command)
+        {
+            try
+            {
+                return await Mediator.Send(command);
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure($"Failed make payment. Error: {ex?.Message ?? ex?.InnerException?.Message}");
             }
         }
 

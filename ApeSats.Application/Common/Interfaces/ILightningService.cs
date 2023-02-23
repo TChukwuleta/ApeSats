@@ -13,6 +13,7 @@ namespace ApeSats.Application.Common.Interfaces
         Task<string> CreateInvoice(long satoshis, string message, UserType userType);
         Task<long> GetChannelBalance(UserType userType);
         Task<long> GetWalletBalance(UserType userType);
+        Task<long> DecodePaymentRequest(string paymentRequest, UserType userType);
         Task<string> SendLightning(string paymentRequest, UserType userType);
         Task<InvoiceSettlementResponse> ListenForSettledInvoice(UserType userType);
         Task<long> GetValueFromInvoice(string paymentRequest, UserType userType);
