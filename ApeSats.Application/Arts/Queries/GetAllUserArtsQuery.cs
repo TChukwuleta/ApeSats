@@ -4,11 +4,6 @@ using ApeSats.Core.Entities;
 using ApeSats.Core.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApeSats.Application.Arts.Queries
 {
@@ -38,29 +33,29 @@ namespace ApeSats.Application.Arts.Queries
                 {
                     return Result.Failure("Retrieving all user's art was not successful. Invalid user details");
                 }
-                var posts = await _context.Arts.Where(c => c.UserId == request.UserId).ToListAsync();
-                if (posts.Count() <= 0)
+                var arts = await _context.Arts.Where(c => c.UserId == request.UserId).ToListAsync();
+                if (arts == null || arts.Count() <= 0)
                 {
                     return Result.Failure("Retrieving user's arts was not successful. No art found for this user");
                 }
                 if (request.Skip == 0 && request.Take == 0)
                 {
-                    response = posts;
+                    response = arts;
                 }
                 else
                 {
-                    response = posts.Skip(request.Skip).Take(request.Take).ToList();
+                    response = arts.Skip(request.Skip).Take(request.Take).ToList();
                 }
                 var entity = new
                 {
                     Entity = response,
-                    Count = posts.Count()
+                    Count = arts.Count()
                 };
                 return Result.Success("Retrieving user's art was successful", entity);
             }
             catch (Exception ex)
             {
-                return Result.Failure(new string[] { "User's art retrieval was not successful", ex?.Message ?? ex?.InnerException.Message });
+                return Result.Failure($"User's art retrieval was not successful. {ex?.Message ?? ex?.InnerException.Message }");
             }
         }
     }

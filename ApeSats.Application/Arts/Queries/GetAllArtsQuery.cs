@@ -4,11 +4,6 @@ using ApeSats.Core.Entities;
 using ApeSats.Core.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApeSats.Application.Arts.Queries
 {
@@ -43,10 +38,11 @@ namespace ApeSats.Application.Arts.Queries
                     Id = item.Id,
                     Title = item.Title,
                     Description = item.Description,
+                    Image = item.Image,
                     Status = item.Status,
                     CreatedDate = item.CreatedDate
                 }).ToListAsync();
-                if (allArts.Count() <= 0)
+                if (allArts == null || allArts.Count() <= 0)
                 {
                     return Result.Failure("No arts available");
                 }
@@ -63,7 +59,7 @@ namespace ApeSats.Application.Arts.Queries
             }
             catch (Exception ex)
             {
-                return Result.Failure(new string[] { "Arts retrieval was not successful", ex?.Message ?? ex?.InnerException.Message });
+                return Result.Failure($"Arts retrieval was not successful. {ex?.Message ?? ex?.InnerException.Message }");
             }
         }
     }

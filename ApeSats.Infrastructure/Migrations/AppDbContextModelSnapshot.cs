@@ -66,7 +66,7 @@ namespace ApeSats.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Accounts");
+                    b.ToTable("Accounts", (string)null);
                 });
 
             modelBuilder.Entity("ApeSats.Core.Entities.Art", b =>
@@ -124,7 +124,7 @@ namespace ApeSats.Infrastructure.Migrations
 
                     b.HasIndex("BidId");
 
-                    b.ToTable("Arts");
+                    b.ToTable("Arts", (string)null);
                 });
 
             modelBuilder.Entity("ApeSats.Core.Entities.Bid", b =>
@@ -157,7 +157,7 @@ namespace ApeSats.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Bids");
+                    b.ToTable("Bids", (string)null);
                 });
 
             modelBuilder.Entity("ApeSats.Core.Entities.Transaction", b =>
@@ -211,7 +211,7 @@ namespace ApeSats.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

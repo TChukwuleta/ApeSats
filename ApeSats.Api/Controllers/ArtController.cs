@@ -1,9 +1,7 @@
 ﻿using ApeSats.Application.Arts.Commands;
 using ApeSats.Application.Arts.Queries;
-using ApeSats.Application.Transactions.Queries;
 using ApeSats.Application.Users.Commands;
 using ApeSats.Core.Model;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApeSats.Api.Controllers
@@ -112,21 +110,6 @@ namespace ApeSats.Api.Controllers
             catch (Exception ex)
             {
                 return Result.Failure($"Failed make payment. Error: {ex?.Message ?? ex?.InnerException?.Message}");
-            }
-        }
-
-
-        [HttpGet("gettransactionsbyid/{skip}/{take}/{userid}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<Result>> GetAllTransactionsByUser(int skip, int take, string userid)
-        {
-            try
-            {
-                return await Mediator.Send(new GetAllTransactionsQuery { Skip = skip, Take = take, UserId = userid });
-            }
-            catch (Exception ex)
-            {
-                return Result.Failure($"Transactions retrieval by user failed. Error: {ex?.Message ?? ex?.InnerException?.Message}");
             }
         }
 

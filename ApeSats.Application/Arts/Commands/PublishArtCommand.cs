@@ -3,11 +3,6 @@ using ApeSats.Application.Common.Interfaces.Validators;
 using ApeSats.Core.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApeSats.Application.Arts.Commands
 {
@@ -42,6 +37,10 @@ namespace ApeSats.Application.Arts.Commands
                 {
                     return Result.Failure("Unable to publish art. Invalid art specified");
                 }
+                if (art.Status == Core.Enums.Status.Deactivated)
+                {
+                    return Result.Failure("Art is currently deactivated from being published.");
+                }
                 if (art.BidStartTime < DateTime.Now && art.BidExpirationTime > DateTime.Now)
                 {
                     return Result.Failure("Unable to publish art. Art currently on bid");
@@ -52,6 +51,13 @@ namespace ApeSats.Application.Arts.Commands
                 }
                 if ((art.ArtStatus == Core.Enums.ArtStatus.Published || art.ArtStatus == Core.Enums.ArtStatus.Rebid) && art.BidExpirationTime < DateTime.Now)
                 {
+                    if (art.RebidCount > 5)
+                    {
+                        art.Status = Core.Enums.Status.Deactivated;
+                        _context.Arts.Update(art);
+                        await _context.SaveChangesAsync(cancellationToken);
+                        return Result.Failure("This bid item has exceeded the amount of times it can be put up as a bid on the system");
+                    }
                     if (art.ArtStatus == Core.Enums.ArtStatus.Rebid)
                     {
                         art.RebidCount += 1;
@@ -71,7 +77,7 @@ namespace ApeSats.Application.Arts.Commands
             }
             catch (Exception ex)
             {
-                return Result.Failure(new string[] { "Publishing art was not successful", ex?.Message ?? ex?.InnerException.Message });
+                return Result.Failure($"Publishing art was not successful. {ex?.Message ?? ex?.InnerException.Message }");
             }
         }
     }

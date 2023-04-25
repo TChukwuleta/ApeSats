@@ -3,11 +3,6 @@ using ApeSats.Application.Common.Interfaces.Validators;
 using ApeSats.Core.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApeSats.Application.Arts.Queries
 {
@@ -45,7 +40,7 @@ namespace ApeSats.Application.Arts.Queries
             }
             catch (Exception ex)
             {
-                return Result.Failure(new string[] { "User art retrieval was not successful", ex?.Message ?? ex?.InnerException.Message });
+                return Result.Failure($"User art retrieval was not successful. {ex?.Message ?? ex?.InnerException.Message }");
             }
         }
     }

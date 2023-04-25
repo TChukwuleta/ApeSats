@@ -92,17 +92,17 @@ builder.Services.AddScoped<IAppDbContext>(prov => prov.GetService<AppDbContext>(
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddTransient<ILightningService, LightningService>();
 builder.Services.AddTransient<ICloudinaryService, CloudinaryService>();
-builder.Services.AddScheduler();
+builder.Services.AddHostedService<BackgroundWorkerService>();
+//builder.Services.AddScheduler();
 //builder.Services.AddTransient<InvoiceListenerCommand>();
-
 
 var app = builder.Build();
 
-app.Services.UseScheduler(scheduler =>
+/*app.Services.UseScheduler(scheduler =>
 {
     var jobSchedule = scheduler.Schedule<InvoiceListenerCommand>();
     jobSchedule.EveryFiveMinutes().PreventOverlapping("apesat");
-});
+});*/
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

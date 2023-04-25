@@ -35,7 +35,7 @@ namespace ApeSats.Application.Arts.Commands
                 var user = await _authService.GetUserById(request.UserId);
                 if (user.user == null)
                 {
-                    return Result.Failure("Unable to publish art. Invalid user details specified.");
+                    return Result.Failure("Unable to bid for art. Invalid user details specified.");
                 }
                 var userAccount = await _context.Accounts.FirstOrDefaultAsync(c => c.UserId == request.UserId);
                 if (userAccount == null)

@@ -62,7 +62,7 @@ namespace ApeSats.Application.Arts.Commands
                 var art = new Art
                 {
                     Title = request.Title,
-                    Image = await _cloudinaryService.UploadImage(request.Image, request.UserId),//request.Image, // Do cloudinary for image
+                    Image = string.IsNullOrEmpty(request.Image) ? "" : await _cloudinaryService.UploadImage(request.Image, request.UserId),//request.Image, // Do cloudinary for image
                     BaseAmount = request.BaseAmount,
                     CreatedDate = DateTime.Now,
                     ArtStatus = ArtStatus.Draft,
@@ -70,14 +70,13 @@ namespace ApeSats.Application.Arts.Commands
                     UserId = request.UserId,
                     Description = request.Description
                 };
-
                 await _context.Arts.AddAsync(art);
                 await _context.SaveChangesAsync(cancellationToken);
                 return Result.Success("Art upload creation was successful", art);
             }
             catch (Exception ex)
             {
-                return Result.Failure(new string[] { "Art creation was not successful", ex?.Message ?? ex?.InnerException.Message });
+                return Result.Failure($"Art creation was not successful. {ex?.Message ?? ex?.InnerException.Message }");
             }
         }
     }

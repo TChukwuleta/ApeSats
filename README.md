@@ -70,18 +70,28 @@ $ dotnet run
  - POST /api/User/getall/{skip}/{take}/{email} = Returns a list of users avaialble on the system
 
 
+ ##### USERS
+ - POST /api/Art/Upload = Allows a user to upload his art and put it up for sale
+
+
+
 ##### ARTS
- - POST /api/Art/uploadart = Upload a art to the system
+ - POST /api/Art/uploadart = Allows a user to upload his art and put it up for sale
+
+ - GET /api/Art/getallarts/{skip}/{take}/{userid} = Retrieve all arts on the system
+ - GET /api/Art/getartsbyuser/{skip}/{take}/{userid} = Retrieve all arts pertaining a particular user
+ - GET /api/Art/getbyid/{id}/{userid} = Returns a transaction by a given ID
+
  - POST /api/Art/updateart = Update properties of the art before publishing
  - POST /api/Art/publishart = Make art open to the public for bidding
  - POST /api/Art/bidforart = Allows other users to bid for published art
  - POST /api/Art/generateinvoiceforart = Generates invoice for winning bid
  - POST /api/Art/invoicelistener = Listen for invoice when generated invoice has been paid
  - GET /api/Art/gettransactionsbyid/{skip}/{take}/{userid} = Returns a list of users transactions
- - GET /api/Art/getallarts/{skip}/{take}/{userid} = Upload a art to the system
+ 
  - GET /api/Art/uploadart/{skip}/{take}/{userid} = Upload a art to the system
  - GET /api/Art/uploadart/{skip}/{take}/{userid} = Upload a art to the system
- - GET /api/Art/getbyid/{id}/{userid} = Returns a transaction by a given ID
+
 
 
 ##### TRANSACTION
