@@ -92,7 +92,7 @@ namespace ApeSats.Application.Arts.Commands
                 _context.Accounts.Update(userAccount);
                 _context.Arts.Update(art);
                 await _context.SaveChangesAsync(cancellationToken);
-                return Result.Success("You have successfully bid for art", art);
+                return Result.Success("You have successfully bid for art");
             }
             catch (Exception ex)
             {

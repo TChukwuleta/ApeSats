@@ -10,9 +10,8 @@ using System.Threading.Tasks;
 
 namespace ApeSats.Application.Users.Queries
 {
-    public class GetUserByIdQuery : IRequest<Result>, IIdValidator
+    public class GetUserByIdQuery : IRequest<Result>, IBaseValidator
     {
-        public int Id { get; set; }
         public string UserId { get; set; }
     }
 
@@ -37,7 +36,7 @@ namespace ApeSats.Application.Users.Queries
             }
             catch (Exception ex)
             {
-                return Result.Failure(new string[] { "Getting user by Id was not successful", ex?.Message ?? ex?.InnerException.Message });
+                return Result.Failure($"Getting user by Id was not successful. {ex?.Message ?? ex?.InnerException.Message }");
             }
         }
     }

@@ -2,11 +2,6 @@
 using ApeSats.Application.Common.Interfaces.Validators;
 using ApeSats.Core.Model;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApeSats.Application.Users.Queries
 {
@@ -29,6 +24,11 @@ namespace ApeSats.Application.Users.Queries
         {
             try
             {
+                var user = await _authService.GetUserByEmail(request.Email);
+                if (user.user == null)
+                {
+                    return Result.Failure("User rettrieval was not successful");
+                }
                 var result = await _authService.GetAllUsers(request.Skip, request.Take);
                 if (result.users == null)
                 {
