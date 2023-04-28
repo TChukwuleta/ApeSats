@@ -10,6 +10,9 @@ namespace ApeSats.Core.Entities
     {
         public string SellerAccountNumber { get; set; }
         public string BuyerAccountNumber { get; set; }
+        public int ArtNumber { get; set; }
         public decimal Amount { get; set; }
+        public string Reference { get; set; }
+        public DateTime ExpirationDate { get; set; }
     }
 }

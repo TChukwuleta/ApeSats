@@ -47,7 +47,7 @@ namespace ApeSats.Application.Users.Commands
                 {
                     return Result.Failure("Unable to withdraw satoshis. Invalid user account details");
                 }
-                var decodedInvoiceAmount = await _lightningService.DecodePaymentRequest(request.PaymentRequest, Core.Enums.UserType.Admin);
+                var decodedInvoiceAmount = await _lightningService.DecodePaymentRequest(request.PaymentRequest);
                 if (decodedInvoiceAmount <= 0)
                 {
                     return Result.Failure("An error occured while trying to decode payment request. Please try again later");
@@ -59,7 +59,7 @@ namespace ApeSats.Application.Users.Commands
                 account.AvailableBalance -= decodedInvoiceAmount;
                 _context.Accounts.Update(account);
 
-                var payInvoiceResponse = await _lightningService.SendLightning(request.PaymentRequest, Core.Enums.UserType.Admin);
+                var payInvoiceResponse = await _lightningService.SendLightning(request.PaymentRequest);
                 if (!string.IsNullOrEmpty(payInvoiceResponse))
                 {
                     return Result.Failure($"An error occured while trying to pay invoice. {payInvoiceResponse}");

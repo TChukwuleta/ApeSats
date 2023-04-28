@@ -4,11 +4,6 @@ using ApeSats.Core.Entities;
 using ApeSats.Core.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApeSats.Application.Arts.Commands
 {
@@ -42,7 +37,7 @@ namespace ApeSats.Application.Arts.Commands
                 {
                     return Result.Failure("User account isn't available");
                 }
-                var art = await _context.Arts.Include(c => c.Bid).FirstOrDefaultAsync(c => c.Id == request.Id);
+                var art = await _context.Arts.FirstOrDefaultAsync(c => c.Id == request.Id);
                 if (art == null)
                 {
                     return Result.Failure("Unable to bid for art. Invalid art specified");
@@ -78,13 +73,13 @@ namespace ApeSats.Application.Arts.Commands
                 }
                 userAccount.AvailableBalance -= request.Amount;
                 userAccount.LockedBalance += request.Amount;
-
                 var bid = new Bid
                 {
                     SellerAccountNumber = sellerAccount.AccountNumber,
                     BuyerAccountNumber = userAccount.AccountNumber,
                     Amount = request.Amount,
                     Status = Core.Enums.Status.Active,
+                    ArtNumber = art.Id,
                     CreatedDate = DateTime.Now
                 };
                 art.Bid = bid;
@@ -96,7 +91,7 @@ namespace ApeSats.Application.Arts.Commands
             }
             catch (Exception ex)
             {
-                return Result.Failure(new string[] { "Art bidding was not successful", ex?.Message ?? ex?.InnerException.Message });
+                return Result.Failure($"Art bidding was not successful. {ex?.Message ?? ex?.InnerException.Message }");
             }
         }
     }

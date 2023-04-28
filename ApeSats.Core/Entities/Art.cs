@@ -17,7 +17,6 @@ namespace ApeSats.Core.Entities
         public ArtStatus ArtStatus { get; set; }
         public string ArtStatusDesc { get { return ArtStatus.ToString(); } }
         public int RebidCount { get; set; }
-        public Bid? Bid { get; set; }
         public decimal BaseAmount { get; set; }
         public string UserId { get; set; }
     }

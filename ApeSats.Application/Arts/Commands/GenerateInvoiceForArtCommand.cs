@@ -4,8 +4,6 @@ using ApeSats.Core.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using QRCoder;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
 
 namespace ApeSats.Application.Arts.Commands
@@ -13,6 +11,7 @@ namespace ApeSats.Application.Arts.Commands
     public class GenerateInvoiceForArtCommand : IRequest<Result>, IIdValidator
     {
         public int Id { get; set; }
+        public string Reference { get; set; }
         public string UserId { get; set; }
     }
 
@@ -46,26 +45,39 @@ namespace ApeSats.Application.Arts.Commands
                 {
                     return Result.Failure("Unable to generate invoice for art. Invalid user account");
                 }
-                var art = await _context.Arts.Include(c => c.Bid).FirstOrDefaultAsync(c => c.Id == request.Id);
+                var art = await _context.Arts.FirstOrDefaultAsync(c => c.Id == request.Id);
                 if (art == null)
                 {
                     return Result.Failure("Unable to generate invoice for art. Invalid art");
                 }
-                if (art.Bid == null)
+                var allArtBids = await _context.Bids.Where(c => c.ArtNumber == request.Id).ToListAsync();
+                if (allArtBids == null || allArtBids.Count() <= 0)
+                {
+                    return Result.Failure("No bid available for this art");
+                }
+                if (allArtBids.FirstOrDefault().ExpirationDate > DateTime.Now)
+                {
+                    return Result.Failure("Art bidding is still ongoing. Please try again");
+                }
+                var bid = allArtBids.FirstOrDefault(c => c.Reference == request.Reference);
+                if (bid == null)
                 {
                     return Result.Failure("Unable to generate invoice for art. No available bid for this art");
                 }
-                var userWonBid = art.Bid.BuyerAccountNumber == account.AccountNumber;
-                if (!userWonBid)
+                if (bid.BuyerAccountNumber != account.AccountNumber) 
                 {
-                    return Result.Failure("Unable to generate invoice for art. Apologies, this bid is not available to you");
+                    return Result.Failure("Unable to generate invoice for art. Your account does not have a record for this bid");
                 }
-                var walletBalance = await _lightningService.GetWalletBalance(Core.Enums.UserType.Admin);
-                if (walletBalance <= art.Bid.Amount)
+                if (bid.Amount != allArtBids.Max(c => c.Amount))
+                {
+                    return Result.Failure("You did not win this bid roudn. Try again with a different bid. In the while, your locked funds would be released soon");
+                }
+                var walletBalance = await _lightningService.GetWalletBalance();
+                if (walletBalance <= bid.Amount)
                 {
                     return Result.Failure("Invalid wallet balance. Kindly contact support");
                 }
-                var invoice = await _lightningService.CreateInvoice((long)art.Bid.Amount, $"{art.Id}/{request.UserId}", Core.Enums.UserType.Admin);
+                var invoice = await _lightningService.CreateInvoice((long)bid.Amount, $"{art.Id}/{request.UserId}");
                 if (string.IsNullOrEmpty(invoice))
                 {
                     return Result.Failure("Cannot generate invoice at the moment. Please try again later");

@@ -39,7 +39,7 @@ namespace ApeSats.Application.Users.Commands
                 {
                     return Result.Failure("User withdrawal failed. Invalid user specified");
                 }
-                var amount = await _lightningService.GetValueFromInvoice(request.PaymentRequest, Core.Enums.UserType.User);
+                var amount = await _lightningService.GetValueFromInvoice(request.PaymentRequest);
                 if (amount <= 0)
                 {
                     return Result.Failure("User withdrawal failed. Unable to retrieve value from invoice.");
@@ -51,7 +51,7 @@ namespace ApeSats.Application.Users.Commands
                 }
                 account.LedgerBalance -= amount;
                 account.AvailableBalance -= amount;
-                var sendLightningError = await _lightningService.SendLightning(request.PaymentRequest, Core.Enums.UserType.User);
+                var sendLightningError = await _lightningService.SendLightning(request.PaymentRequest);
                 if (!string.IsNullOrEmpty(sendLightningError))
                 {
                     return Result.Failure(sendLightningError);

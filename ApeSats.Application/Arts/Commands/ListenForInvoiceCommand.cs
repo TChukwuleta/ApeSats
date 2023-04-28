@@ -30,7 +30,7 @@ namespace ApeSats.Application.Arts.Commands
         {
             try
             {
-                var listener = await _lightningService.ListenForSettledInvoice(Core.Enums.UserType.Admin);
+                var listener = await _lightningService.ListenForSettledInvoice();
                 if (listener == null)
                 {
                     return Result.Failure("An error occured.");
