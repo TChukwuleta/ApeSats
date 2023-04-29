@@ -80,6 +80,8 @@ namespace ApeSats.Application.Lightning.Commands
                         {
                             break;
                         }
+                        buyerAccount.LockedBalance -= invoiceListener.AmountInSat;
+                        buyerAccount.AvailableBalance += invoiceListener.AmountInSat;
                         var transactionRequests = new List<TransactionRequest>();
                         transactionRequests.Add(new TransactionRequest
                         {

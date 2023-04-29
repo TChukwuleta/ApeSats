@@ -93,14 +93,16 @@ namespace ApeSats.Application.Arts.Commands
                 };
                 await _context.Bids.AddAsync(bid);
                 _context.Accounts.Update(userAccount);
-                foreach (var bidder in existingBids)
+                var lastBidAmount = existingBids.Max(c => c.Amount);
+                var lastBid = existingBids.FirstOrDefault(c => c.Amount <= lastBidAmount);
+                if (lastBid != null)
                 {
-                    var pastBidder = await _context.Accounts.FirstOrDefaultAsync(c => c.AccountNumber == bidder.BuyerAccountNumber);
-                    if (pastBidder != null)
+                    var lastBidder = await _context.Accounts.FirstOrDefaultAsync(c => c.AccountNumber == lastBid.BuyerAccountNumber);
+                    if (lastBidder != null)
                     {
-                        pastBidder.LockedBalance -= bidder.Amount;
-                        pastBidder.AvailableBalance += bidder.Amount;
-                        _context.Accounts.Update(pastBidder);
+                        lastBidder.LockedBalance -= lastBid.Amount;
+                        lastBidder.AvailableBalance += lastBid.Amount;
+                        _context.Accounts.Update(lastBidder);
                     }
                 }
                 await _context.SaveChangesAsync(cancellationToken);
