@@ -1,22 +1,17 @@
 ﻿using ApeSats.Application.Common.Interfaces;
-using ApeSats.Application.Common.Interfaces.Validators;
 using ApeSats.Application.Common.Model.Request;
 using ApeSats.Core.Entities;
 using ApeSats.Core.Enums;
 using ApeSats.Core.Model;
 using FluentValidation.Results;
 using MediatR;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApeSats.Application.Transactions.Commands
 {
-    public class CreateTransactionsCommand : IRequest<Result>, IBaseValidator
+    public class CreateTransactionsCommand : IRequest<Result>
     {
-        public int AccountId { get; set; }
         public List<TransactionRequest> TransactionRequests { get; set; }
-        public string UserId { get; set; }
     }
 
     public class CreateTransactionsCommandHandler : IRequestHandler<CreateTransactionsCommand, Result>
@@ -33,30 +28,45 @@ namespace ApeSats.Application.Transactions.Commands
             var reference = $"BitPaywall_{DateTime.Now.Ticks}";
             try
             {
-                var user = await _authService.GetUserById(request.UserId);
-                if (user.user == null)
-                {
-                    return Result.Failure("Transaction creation failed. Invalid user details");
-                }
                 var transactions = new List<Transaction>();
                 foreach (var item in request.TransactionRequests)
                 {
+                    var user = await _authService.GetUserById(item.UserId);
+                    if (user.user == null)
+                    {
+                        return Result.Failure("Transaction creation failed. Invalid user details");
+                    }
                     this.ValidateItem(item);
+                    var userAccount = await _context.Accounts.FirstOrDefaultAsync(c => c.UserId == item.UserId);
                     var entity = new Transaction
                     {
-                        UserId = request.UserId,
+                        UserId = item.UserId,
                         Amount = item.Amount,
                         CreditAccount = item.CreditAccount,
                         TransactionType = item.TransactionType,
                         TransactionReference = reference,
                         DebitAccount = item.DebitAccount,
                         TransactionStatus = TransactionStatus.Success,
-                        AccountId = request.AccountId,
+                        AccountId = userAccount.Id,
                         CreatedDate = DateTime.Now,
                         Narration = item.Description,
                         Status = Status.Active
                     };
                     transactions.Add(entity);
+                    switch (item.TransactionType)
+                    {
+                        case TransactionType.Debit:
+                            userAccount.AvailableBalance -= item.Amount;
+                            userAccount.LedgerBalance -= item.Amount;
+                            break;
+                        case TransactionType.Credit:
+                            userAccount.AvailableBalance += item.Amount;
+                            userAccount.LedgerBalance += item.Amount;
+                            break;
+                        default:
+                            break;
+                    }
+                    _context.Accounts.Update(userAccount);
                 }
                 await _context.Transactions.AddRangeAsync(transactions);
                 await _context.SaveChangesAsync(cancellationToken);

@@ -1,39 +1,30 @@
 ﻿using ApeSats.Application.Transactions.Commands;
 using ApeSats.Application.Transactions.Queries;
+using ApeSats.Application.Users.Commands;
 using ApeSats.Core.Model;
-using Microsoft.AspNetCore.Http;
+using ApeSats.Infrastructure.Utility;
+using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApeSats.Api.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class TransactionController : ApiController
     {
         protected readonly IHttpContextAccessor _contextAccessor;
-        private readonly string accessToken;
-        public TransactionController(IHttpContextAccessor contextAccessor)
+        private readonly IMediator _mediator;
+        public TransactionController(IHttpContextAccessor contextAccessor, IMediator mediator)
         {
             _contextAccessor = contextAccessor;
-            accessToken = _contextAccessor.HttpContext.Request.Headers["Authorization"].ToString();
-            if (string.IsNullOrEmpty(accessToken))
+            _mediator = mediator;
+            accessToken = _contextAccessor.HttpContext.Request.Headers["Authorization"].ToString()?.ExtractToken();
+            if (accessToken == null)
             {
                 throw new Exception("You are not authorized!");
             }
 
-        }
-
-        [HttpPost("createtransaction")]
-        public async Task<ActionResult<Core.Model.Result>> CreateTransaction(CreateTransactionCommand command)
-        {
-            try
-            {
-                return await Mediator.Send(command);
-            }
-            catch (Exception ex)
-            {
-                return Result.Failure($"Failed to create transaction. Error: {ex?.Message ?? ex?.InnerException?.Message}");
-            }
         }
 
         [HttpGet("gettransactionsbyid/{skip}/{take}/{userid}")]
@@ -42,7 +33,7 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(new GetAllTransactionsQuery { Skip = skip, Take = take, UserId = userid });
+                return await _mediator.Send(new GetAllTransactionsQuery { Skip = skip, Take = take, UserId = userid });
             }
             catch (Exception ex)
             {
@@ -56,7 +47,7 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(new GetTransactionByIdQuery { Id = id, UserId = userid });
+                return await _mediator.Send(new GetTransactionByIdQuery { Id = id, UserId = userid });
             }
             catch (Exception ex)
             {
@@ -70,7 +61,7 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(new GetCreditTransactionsByUserIdQuery { UserId = userid, Skip = skip, Take = take });
+                return await _mediator.Send(new GetCreditTransactionsByUserIdQuery { UserId = userid, Skip = skip, Take = take });
             }
             catch (Exception ex)
             {
@@ -84,7 +75,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(new GetCreditTransactionByAccountNumberQuery { AccountNumber = accountnumber, UserId = userid, Skip = skip, Take = take });
+                accessToken.ValidateToken(userid);
+                return await _mediator.Send(new GetCreditTransactionByAccountNumberQuery { AccountNumber = accountnumber, UserId = userid, Skip = skip, Take = take });
             }
             catch (Exception ex)
             {
@@ -98,7 +90,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(new GetDebitTransactionByUserIdQuery { UserId = userid, Skip = skip, Take = take });
+                accessToken.ValidateToken(userid);
+                return await _mediator.Send(new GetDebitTransactionByUserIdQuery { UserId = userid, Skip = skip, Take = take });
             }
             catch (Exception ex)
             {
@@ -112,7 +105,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(new GetDebitTransactionByAccountNumberQuery { AccountNumber = accountnumber, UserId = userid, Skip = skip, Take = take });
+                accessToken.ValidateToken(userid);
+                return await _mediator.Send(new GetDebitTransactionByAccountNumberQuery { AccountNumber = accountnumber, UserId = userid, Skip = skip, Take = take });
             }
             catch (Exception ex)
             {

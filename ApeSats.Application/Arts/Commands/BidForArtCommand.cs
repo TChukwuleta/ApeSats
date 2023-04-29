@@ -25,6 +25,7 @@ namespace ApeSats.Application.Arts.Commands
         }
         public async Task<Result> Handle(BidForArtCommand request, CancellationToken cancellationToken)
         {
+            var reference = $"ApeSats_{DateTime.Now.Ticks}";
             try
             {
                 var user = await _authService.GetUserById(request.UserId);
@@ -42,6 +43,10 @@ namespace ApeSats.Application.Arts.Commands
                 {
                     return Result.Failure("Unable to bid for art. Invalid art specified");
                 }
+                if (art.UserId == request.UserId)
+                {
+                    return Result.Failure("Cannot Bid for self owned art");
+                }
                 var compareDate = DateTime.Compare((DateTime)art.BidExpirationTime, DateTime.Now);
                 if (compareDate < 0)
                 {
@@ -52,7 +57,8 @@ namespace ApeSats.Application.Arts.Commands
                 {
                     return Result.Failure("Invalid account details available for seller");
                 }
-                if (art.Bid == null)
+                var existingBids = await _context.Bids.Where(c => c.SellerAccountNumber == sellerAccount.AccountNumber && c.ArtNumber == art.Id).ToListAsync();
+                if (existingBids == null || existingBids.Count() <= 0)
                 {
                     if (request.Amount <= art.BaseAmount)
                     {
@@ -61,7 +67,7 @@ namespace ApeSats.Application.Arts.Commands
                 }
                 else
                 {
-                    if (request.Amount <= art.Bid.Amount)
+                    if (request.Amount <= existingBids.Max(c => c.Amount))
                     {
                         return Result.Failure("Please input a higer value to bid for this item");
                     }
@@ -73,19 +79,30 @@ namespace ApeSats.Application.Arts.Commands
                 }
                 userAccount.AvailableBalance -= request.Amount;
                 userAccount.LockedBalance += request.Amount;
+                existingBids.ForEach(c => c.Status = Core.Enums.Status.Deactivated);
+                _context.Bids.UpdateRange(existingBids);
                 var bid = new Bid
                 {
                     SellerAccountNumber = sellerAccount.AccountNumber,
                     BuyerAccountNumber = userAccount.AccountNumber,
                     Amount = request.Amount,
                     Status = Core.Enums.Status.Active,
+                    Reference = reference,
                     ArtNumber = art.Id,
                     CreatedDate = DateTime.Now
                 };
-                art.Bid = bid;
-                art.LastModifiedDate = DateTime.Now;
+                await _context.Bids.AddAsync(bid);
                 _context.Accounts.Update(userAccount);
-                _context.Arts.Update(art);
+                foreach (var bidder in existingBids)
+                {
+                    var pastBidder = await _context.Accounts.FirstOrDefaultAsync(c => c.AccountNumber == bidder.BuyerAccountNumber);
+                    if (pastBidder != null)
+                    {
+                        pastBidder.LockedBalance -= bidder.Amount;
+                        pastBidder.AvailableBalance += bidder.Amount;
+                        _context.Accounts.Update(pastBidder);
+                    }
+                }
                 await _context.SaveChangesAsync(cancellationToken);
                 return Result.Success("You have successfully bid for art");
             }

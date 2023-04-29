@@ -1,6 +1,8 @@
 ﻿using ApeSats.Application.Common.Interfaces;
 using ApeSats.Application.Common.Interfaces.Validators;
+using ApeSats.Application.Transactions.Commands;
 using ApeSats.Core.Entities;
+using ApeSats.Core.Enums;
 using ApeSats.Core.Model;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -56,33 +58,33 @@ namespace ApeSats.Application.Users.Commands
                 {
                     return Result.Failure("Unable to withdraw satoshis. Insufficient funds in the account");
                 }
-                account.AvailableBalance -= decodedInvoiceAmount;
-                _context.Accounts.Update(account);
-
                 var payInvoiceResponse = await _lightningService.SendLightning(request.PaymentRequest);
                 if (!string.IsNullOrEmpty(payInvoiceResponse))
                 {
                     return Result.Failure($"An error occured while trying to pay invoice. {payInvoiceResponse}");
                 }
-                var transaction = new Transaction
+                var transactionRequest = new CreateTransactionCommand
                 {
-                    AccountId = account.Id,
+                    Description = "Money withdrawal successfully",
                     DebitAccount = account.AccountNumber,
-                    CreditAccount = "Admin",
-                    Narration = "Withdrawal",
+                    CreditAccount = "",
                     Amount = decodedInvoiceAmount,
-                    TransactionStatus = Core.Enums.TransactionStatus.Success,
-                    TransactionReference = reference,
-                    TransactionType = Core.Enums.TransactionType.Debit,
-                    UserId = request.UserId
+                    TransactionType = TransactionType.Debit,
+                    UserId = account.UserId
                 };
-                await _context.Transactions.AddAsync(transaction);
+
+                var fundingTransaction = await new CreateTransactionCommandHandler(_context, _authService).Handle(transactionRequest, cancellationToken);
+                if (!fundingTransaction.Succeeded)
+                {
+                    return Result.Failure("An error while creating a transaction. Kindly contact support");
+                }
+
                 await _context.SaveChangesAsync(cancellationToken);
                 return Result.Success("Invoice has been paid successfully");
             }
             catch (Exception ex)
             {
-                return Result.Failure(new string[] { "Invoice payment was not successful", ex?.Message ?? ex?.InnerException.Message });
+                return Result.Failure($"Invoice payment was not successful. {ex?.Message ?? ex?.InnerException.Message }");
             }
         }
     }

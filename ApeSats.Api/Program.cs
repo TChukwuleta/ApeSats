@@ -1,9 +1,7 @@
-using ApeSats.Application.Common;
 using ApeSats.Application.Common.Interfaces;
 using ApeSats.Core.Entities;
 using ApeSats.Infrastructure.Data;
 using ApeSats.Infrastructure.Services;
-using Coravel;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;

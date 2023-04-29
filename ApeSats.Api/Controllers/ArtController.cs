@@ -1,22 +1,26 @@
 ﻿using ApeSats.Application.Arts.Commands;
 using ApeSats.Application.Arts.Queries;
-using ApeSats.Application.Users.Commands;
+using ApeSats.Application.Lightning.Commands;
 using ApeSats.Core.Model;
+using ApeSats.Infrastructure.Utility;
+using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApeSats.Api.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ArtController : ApiController
     {
         protected readonly IHttpContextAccessor _contextAccessor;
-        private readonly string accessToken;
-        public ArtController(IHttpContextAccessor contextAccessor)
+        private readonly IMediator _mediator;
+        public ArtController(IHttpContextAccessor contextAccessor, IMediator mediator)
         {
             _contextAccessor = contextAccessor;
-            accessToken = _contextAccessor.HttpContext.Request.Headers["Authorization"].ToString();
-            if (string.IsNullOrEmpty(accessToken))
+            _mediator = mediator;
+            accessToken = _contextAccessor.HttpContext.Request.Headers["Authorization"].ToString()?.ExtractToken();
+            if (accessToken == null)
             {
                 throw new Exception("You are not authorized!");
             }
@@ -27,7 +31,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(command);
+                accessToken.ValidateToken(command.UserId);
+                return await _mediator.Send(command);
             }
             catch (Exception ex)
             {
@@ -40,7 +45,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(command);
+                accessToken.ValidateToken(command.UserId);
+                return await _mediator.Send(command);
             }
             catch (Exception ex)
             {
@@ -53,7 +59,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(command);
+                accessToken.ValidateToken(command.UserId);
+                return await _mediator.Send(command);
             }
             catch (Exception ex)
             {
@@ -66,7 +73,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(command);
+                accessToken.ValidateToken(command.UserId);
+                return await _mediator.Send(command);
             }
             catch (Exception ex)
             {
@@ -79,7 +87,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(command);
+                accessToken.ValidateToken(command.UserId);
+                return await _mediator.Send(command);
             }
             catch (Exception ex)
             {
@@ -88,28 +97,15 @@ namespace ApeSats.Api.Controllers
         }
 
         [HttpPost("invoicelistener")]
-        public async Task<ActionResult<Result>> InvoiceListener(ListenForInvoiceCommand command)
+        public async Task<ActionResult<Result>> InvoiceListener(ListenForPaymentCommand command)
         {
             try
             {
-                return await Mediator.Send(command);
+                return await _mediator.Send(command);
             }
             catch (Exception ex)
             {
                 return Result.Failure($"Failed to listen for invoice. Error: {ex?.Message ?? ex?.InnerException?.Message}");
-            }
-        }
-
-        [HttpPost("withdrawsatoshis")]
-        public async Task<ActionResult<Result>> WithdrawSatoshis(WithdrawSatoshiCommand command)
-        {
-            try
-            {
-                return await Mediator.Send(command);
-            }
-            catch (Exception ex)
-            {
-                return Result.Failure($"Failed make payment. Error: {ex?.Message ?? ex?.InnerException?.Message}");
             }
         }
 
@@ -119,7 +115,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(new GetAllArtsQuery { Skip = skip, Take = take, UserId = userid });
+                accessToken.ValidateToken(userid);
+                return await _mediator.Send(new GetAllArtsQuery { Skip = skip, Take = take, UserId = userid });
             }
             catch (Exception ex)
             {
@@ -133,11 +130,27 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(new GetAllPublishedArtsQuery { Skip = skip, Take = take, UserId = userid });
+                accessToken.ValidateToken(userid);
+                return await _mediator.Send(new GetAllPublishedArtsQuery { Skip = skip, Take = take, UserId = userid });
             }
             catch (Exception ex)
             {
                 return Result.Failure($"Published arts retrieval failed. Error: {ex?.Message ?? ex?.InnerException?.Message}");
+            }
+        }
+
+        [HttpGet("getdraftsarts/{skip}/{take}/{userid}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<Result>> GetDraftArts(int skip, int take, string userid)
+        {
+            try
+            {
+                accessToken.ValidateToken(userid);
+                return await _mediator.Send(new GetDraftArtPerUserQuery { Skip = skip, Take = take, UserId = userid });
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure($"Drafts arts retrieval failed. Error: {ex?.Message ?? ex?.InnerException?.Message}");
             }
         }
 
@@ -147,7 +160,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(new GetAllUserArtsQuery { Skip = skip, Take = take, UserId = userid });
+                accessToken.ValidateToken(userid);
+                return await _mediator.Send(new GetAllUserArtsQuery { Skip = skip, Take = take, UserId = userid });
             }
             catch (Exception ex)
             {
@@ -161,7 +175,8 @@ namespace ApeSats.Api.Controllers
         {
             try
             {
-                return await Mediator.Send(new GetArtByIdQuery { Id = id, UserId = userid });
+                accessToken.ValidateToken(userid);
+                return await _mediator.Send(new GetArtByIdQuery { Id = id, UserId = userid });
             }
             catch (Exception ex)
             {

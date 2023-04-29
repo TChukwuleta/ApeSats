@@ -1,4 +1,5 @@
-﻿using ApeSats.Application.User.Commands;
+﻿using ApeSats.Application.Lightning.Commands;
+using ApeSats.Application.User.Commands;
 using ApeSats.Application.Users.Commands;
 using ApeSats.Application.Users.Queries;
 using ApeSats.Core.Model;
@@ -42,6 +43,20 @@ namespace ApeSats.Api.Controllers
             catch (Exception ex)
             {
                 return Result.Failure($"User login was not successful. Error: {ex?.Message ?? ex?.InnerException?.Message}");
+            }
+        }
+
+
+        [HttpPost("listenforpayment")]
+        public async Task<ActionResult<Core.Model.Result>> ListenForPayment(ListenForPaymentCommand command)
+        {
+            try
+            {
+                return await _mediator.Send(command);
+            }
+            catch (Exception ex)
+            {
+                return Result.Failure($"Failed to listen for payment account. Error: {ex?.Message ?? ex?.InnerException?.Message}");
             }
         }
 

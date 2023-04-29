@@ -1,7 +1,5 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace ApeSats.Api.Controllers
 {
@@ -9,7 +7,6 @@ namespace ApeSats.Api.Controllers
     [ApiController]
     public class ApiController : ControllerBase
     {
-        private ISender _mediator;
-        protected ISender Mediator => _mediator ??= HttpContext.RequestServices.GetService<ISender>();
+        protected JwtSecurityToken accessToken;
     }
 }

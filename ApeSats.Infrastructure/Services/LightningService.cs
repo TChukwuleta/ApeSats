@@ -72,10 +72,6 @@ namespace ApeSats.Infrastructure.Services
             {
                 var helper = new LightningHelper(_config);
                 var txnReq = new InvoiceSubscription();
-                var lookup = new LookupHtlcRequest();
-                /*txnReq.AddIndex = 16;
-                txnReq.SettleIndex = 16;*/
-
                 var adminClient = helper.GetAdminClient();
                 var settledInvoice = adminClient.SubscribeInvoices(txnReq, new Metadata() { new Metadata.Entry("macaroon", helper.GetAdminMacaroon()) });
 
@@ -97,29 +93,12 @@ namespace ApeSats.Infrastructure.Services
                             settledInvoiceResponse.SettledIndex = (long)invoice.SettleIndex;
                             settledInvoiceResponse.Private = invoice.Private;
                             settledInvoiceResponse.AmountInSat = invoice.AmtPaidSat;
-                            settledInvoiceResponse.ArtId = int.Parse(split[0]);
+                            settledInvoiceResponse.Type = split[0];
                             settledInvoiceResponse.UserId = split[1];
                             return settledInvoiceResponse;
                         }
                     }
                 }
-                /*using (var settled = settledInvoice)
-                {
-                    var responseReaderTask = Task.Run(async () =>
-                    {
-                        var responses = settled.ResponseStream.Current;
-                        settledInvoiceResponse.PaymentRequest = responses.PaymentRequest;
-                        settledInvoiceResponse.IsKeysend = responses.IsKeysend;
-                        settledInvoiceResponse.Value = responses.Value;
-                        settledInvoiceResponse.Expiry = responses.Expiry;
-                        settledInvoiceResponse.Settled = responses.Settled;
-                        settledInvoiceResponse.SettledDate = responses.SettleDate;
-                        settledInvoiceResponse.SettledIndex = (long)responses.SettleIndex;
-                        settledInvoiceResponse.Private = responses.Private;
-                        settledInvoiceResponse.AmountInSat = responses.AmtPaidSat;
-                        Console.WriteLine(JsonConvert.SerializeObject(responses));
-                    });
-                }*/
                 return settledInvoiceResponse;
             }
             catch (Exception ex)

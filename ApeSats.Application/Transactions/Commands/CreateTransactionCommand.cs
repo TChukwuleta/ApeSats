@@ -56,13 +56,27 @@ namespace ApeSats.Application.Transactions.Commands
                     CreatedDate = DateTime.Now,
                     AccountId = account.Id
                 };
+                switch (request.TransactionType)
+                {
+                    case TransactionType.Debit:
+                        account.AvailableBalance -= request.Amount;
+                        account.LedgerBalance -= request.Amount;
+                        break;
+                    case TransactionType.Credit:
+                        account.AvailableBalance += request.Amount;
+                        account.LedgerBalance += request.Amount;
+                        break;
+                    default:
+                        break;
+                }
+                _context.Accounts.Update(account);
                 await _context.Transactions.AddAsync(entity);
                 await _context.SaveChangesAsync(cancellationToken);
                 return Result.Success("Transaction creation was successful", entity);
             }
             catch (Exception ex)
             {
-                return Result.Failure(new string[] { "Transactions creation was not successful", ex?.Message ?? ex?.InnerException.Message });
+                return Result.Failure($"Transactions creation was not successful. {ex?.Message ?? ex?.InnerException.Message }");
             }
         }
     }

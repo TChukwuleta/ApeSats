@@ -13,6 +13,7 @@ namespace ApeSats.Application.Common.Interfaces
         DbSet<Art> Arts { get; set; }
         DbSet<Bid> Bids { get; set; }
         DbSet<Account> Accounts { get; set; }
+        DbSet<ArtRequest> ArtRequests { get; set; }
         DbSet<Transaction> Transactions { get; set; }
         DbSet<SystemUser> SystemUsers { get; set; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);

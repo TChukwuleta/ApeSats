@@ -27,7 +27,7 @@ namespace ApeSats.Infrastructure.Utility
                 {
                     throw new Exception("Invalid User Id");
                 }
-                var tokenId = accessToken.Claims.First(claim => claim.Type == "userid")?.Value;
+                var tokenId = accessToken.Claims.First(claim => claim.Type == "userId")?.Value;
                 //  var roleAccessLevel = accessToken.Claims.First(claim => claim.Type == "roleaccesslevel")?.Value;
                 if (userId != tokenId)
                 {

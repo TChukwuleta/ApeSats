@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Lightning\Commands\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="BarCode" Version="2023.2.2" />
     <PackageReference Include="Coravel" Version="4.2.0" />
     <PackageReference Include="FluentValidation" Version="11.5.0" />

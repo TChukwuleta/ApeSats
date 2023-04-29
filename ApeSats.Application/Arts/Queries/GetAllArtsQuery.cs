@@ -33,7 +33,7 @@ namespace ApeSats.Application.Arts.Queries
                 {
                     return Result.Failure("Arts retrieval was not successful. Invalid user details");
                 }
-                var allArts = await _context.Arts.Select(item => new Art
+                var allArts = await _context.Arts.Where(c => c.ArtStatus == Core.Enums.ArtStatus.Published || c.ArtStatus == Core.Enums.ArtStatus.Rebid).Select(item => new Art
                 {
                     Id = item.Id,
                     Title = item.Title,
@@ -54,7 +54,6 @@ namespace ApeSats.Application.Arts.Queries
                 {
                     arts = allArts.Skip(request.Skip).Take(request.Take).ToList();
                 }
-
                 return Result.Success("All arts retrieval was successful", arts);
             }
             catch (Exception ex)

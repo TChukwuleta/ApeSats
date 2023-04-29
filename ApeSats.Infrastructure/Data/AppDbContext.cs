@@ -2,11 +2,6 @@
 using ApeSats.Core.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApeSats.Infrastructure.Data
 {
@@ -19,6 +14,7 @@ namespace ApeSats.Infrastructure.Data
 
         public DbSet<Art> Arts { get; set; }
         public DbSet<Bid> Bids { get; set; }
+        public DbSet<ArtRequest> ArtRequests { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<SystemUser> SystemUsers { get; set; }
         public DbSet<Account> Accounts { get; set; }
